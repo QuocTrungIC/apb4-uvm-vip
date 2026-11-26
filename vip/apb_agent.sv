@@ -17,19 +17,20 @@ class apb_agent extends uvm_agent;
 		super.build_phase(phase);
 		ap = new("ap", this);
 		if (!uvm_config_db #(virtual apb_if)::get(this, "", "vif", vif)) begin
-			`uvm_fatal(get_type_id(), "[ERROR AGENT] - Can't detect virtual interface")
+			`uvm_fatal(get_type_name(), "[ERROR AGENT] - Can't detect virtual interface")
+		end
 		//--------------------------------------------------------
 		uvm_config_db #(virtual apb_if)::set(this, "mon", "vif", vif);
 		mon = apb_monitor::type_id::create("mon", this);
 		if (get_is_active() == UVM_ACTIVE) begin
-			`uvm_info(get_type_id(), " >>>[AGENT ACTIVE] | Sequencer + Driver + Monitor active")
+			`uvm_info(get_type_name(), " >>>[AGENT ACTIVE] | Sequencer + Driver + Monitor active", UVM_LOW)
 			//--------------------------------------------------------------------------------------
 			uvm_config_db #(virtual apb_if)::set(this, "drv", "vif", vif);
 			drv = apb_driver::type_id::create("drv", this);
 
 			seqr = apb_sequencer::type_id::create("seqr", this);
-		else begin
-			`uvm_info(get_type_id(), " >>>[AGENT PASSIVE] | Only Monitor active", UVM_LOW)
+		end else begin
+			`uvm_info(get_type_name(), " >>>[AGENT PASSIVE] | Only Monitor active", UVM_LOW)
 		end
 	endfunction : build_phase		
 //Connect
@@ -39,7 +40,7 @@ class apb_agent extends uvm_agent;
 		//Active mode
 		if (get_is_active() == UVM_ACTIVE) begin
 			drv.seq_item_port.connect(seqr.seq_item_export);
-			`uvm_info(get_type_id(), ">>>[AGENT SUCCESS] - Active | Connect Successfully", UVM_LOW)`
+			`uvm_info(get_type_name(), ">>>[AGENT SUCCESS] - Active | Connect Successfully", UVM_LOW)
 		end
 	endfunction : connect_phase
 endclass : apb_agent
