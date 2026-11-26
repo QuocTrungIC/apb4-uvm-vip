@@ -1,22 +1,34 @@
-`ifndef APB_SEQ_ITEM
-`define APB_SEQ_ITEM
+`ifndef APB_SEQ_ITEM_SV
+`define APB_SEQ_ITEM_SV
 class apb_seq_item extends uvm_sequence_item;
 //Config
 	rand bit [31:0]		data;
 	rand bit [31:0]		addr;
 	rand apb_write_e	pwrite;
-	rand bit [3:0]		strb;
+	rand bit [3:0]		pstrb;
+	bit 				pslverr;
 //Constraint
+  //Align Address Width
 	constraint addr_align {
 		addr[1:0] == 2'b00;
 		addr inside {[32'h0000_0000 : 32'h0000_03FF]};
 	}
+  //Strobe mode
+  	constraint strb_wr_rd {
+  		if (pwrite == APB_WRITE) 
+  			pstrb dist {
+  				4'b1111 := 40,
+  				[4'b0001 : 4'b1110] :/ 60
+  			};
+  		else pstrb == 4'b0000;
+  	}
 //Factory
 	`uvm_object_utils_begin(apb_seq_item)
 		`uvm_field_int 		(addr, UVM_ALL_ON | UVM_HEX)
 		`uvm_field_int 		(data, UVM_ALL_ON | UVM_HEX)
 		`uvm_field_enum 	(apb_write_e ,pwrite, UVM_ALL_ON)
-		`uvm_field_int 		(strb, UVM_ALL_ON | UVM_BIN)
+		`uvm_field_int 		(pstrb, UVM_ALL_ON | UVM_BIN)
+		`uvm_field_int 		(pslverr, UVM_ALL_ON | UVM_BIN)
 	`uvm_object_utils_end
 //Construction
 	function new(string name="apb_seq_item");
