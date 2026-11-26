@@ -17,12 +17,12 @@ class apb_driver extends uvm_driver #(apb_seq_item);
 //Run
 	virtual task run_phase(uvm_phase phase);
 	  //Config
-		vif.PSEL	<= 1'b0; 		//IDLE
-		vif.PENABLE <= 1'b0;
-		vif.PWRITE  <= 1'b0;
-		vif.PWDATA	<= '0;
-		vif.PADDR	<= '0;
-		vif.PSTRB	<= '0;
+		vif.cb_drv.PSEL	<= 1'b0; 		//IDLE
+		vif.cb_drv.PENABLE <= 1'b0;
+		vif.cb_drv.PWRITE  <= 1'b0;
+		vif.cb_drv.PWDATA	<= '0;
+		vif.cb_drv.PADDR	<= '0;
+		vif.cb_drv.PSTRB	<= '0;
 
 		wait(vif.PRESETn == 1'b1);
 		`uvm_info(get_type_name(), " >>>[DRIVER READY] - APB4 Driver ready<<<", UVM_LOW)
@@ -35,28 +35,29 @@ class apb_driver extends uvm_driver #(apb_seq_item);
 //Transfer data
 	virtual task drive_transfer(apb_seq_item item);
 	  //Setup
-	  	@(vif.cb);
-	  	vif.PSEL	<= 1'b1;		
-	  	vif.PENABLE <= 1'b0;
-	  	vif.PWRITE  <= (item.pwrite == APB_WRITE) ? 1'b1 : 1'b0;
-	  	vif.PWDATA	<= (item.pwrite == APB_WRITE) ? item.data : '0;
-	  	vif.PADDR	<= item.addr;
-	  	vif.PSTRB	<= item.pstrb;	
+	  	@(vif.cb_drv);
+	  	vif.cb_drv.PSEL		<= 1'b1;		
+	  	vif.cb_drv.PENABLE 	<= 1'b0;
+	  	vif.cb_drv.PWRITE  	<= (item.pwrite == APB_WRITE) ? 1'b1 : 1'b0;
+	  	vif.cb_drv.PWDATA	<= (item.pwrite == APB_WRITE) ? item.data : '0;
+	  	vif.cb_drv.PADDR	<= item.addr;
+	  	vif.cb_drv.PSTRB	<= item.pstrb;	
 	  //Access
-	  	@(vif.cb);		
-	  	vif.PENABLE <= 1'b1;
+	  	@(vif.cb_drv);		
+	  	vif.cb_drv.PENABLE <= 1'b1;
 	  	do begin
-	  		@(vif.cb);
-	  	end while(!vif.PREADY);
+	  		@(vif.cb_drv);
+	  	end while(!vif.cb_drv.PREADY);
 	  //Read
-	  	if (item.pwrite == APB_READ)		item.data = vif.PRDATA;
+	  	if (item.pwrite == APB_READ)		item.data = vif.cb_drv.PRDATA;
+	  	item.PSLVERR = vif.cb_drv.PSLVERR;
 	  	`uvm_info(get_type_name(), 
 	  						$sformatf("[ACCESS DONE] CMD=%s | Addr=0x%08h | Data=0x%08h | PSLVERR=%0b",
 	  						                            (item.pwrite == APB_WRITE) ? "WRITE" : "READ ",
 	  						                            item.addr, item.data, item.pslverr), UVM_LOW)
 	  //End
-	  	vif.PSEL 	<= 1'b0;
-	  	vif.PENABLE <= 1'b0;
+	  	vif.cb_drv.PSEL 	<= 1'b0;
+	  	vif.cb_drv.PENABLE <= 1'b0;
 	endtask : drive_transfer
 endclass : apb_driver
 `endif
