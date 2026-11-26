@@ -1,0 +1,10 @@
+*.vcd
+*.vvp
+*.wlf
+*.fsdb
+*.log
+transcript
+work/
+csrc/
+simv*
+sim_*/
