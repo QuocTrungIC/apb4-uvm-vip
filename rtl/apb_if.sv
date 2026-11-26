@@ -4,8 +4,8 @@ interface apb_if #(
 	parameter	ADDR_WIDTH = 32,
 	parameter	STRB_WIDTH = DATA_WIDTH / 8
 )(
-	logic	PCLK
-)
+	input logic	PCLK
+);
 	logic					PRESETn;
 	logic					PSEL, PENABLE;
 	logic					PWRITE;
@@ -16,11 +16,18 @@ interface apb_if #(
 	logic [STRB_WIDTH-1:0] 	PSTRB;
 	logic					PSLVERR;
 //Clocking Block for testbench
-	clocking cb @(posedge PCLK);
+  //Master
+	clocking cb_drv @(posedge PCLK);
 		default input #1ns output #1ns;
 		output PSEL, PENABLE, PWRITE, PADDR, PWDATA, PSTRB;
 		input  PREADY, PRDATA, PSLVERR;
-	endclocking
+	endclocking 
+  //Monitor
+  	clocking cb_mon @(posedge PCLK);
+  		default input #1step;
+  		input  PSEL, PENABLE, PWRITE,  PADDR, PWDATA, 
+  		  			  PSTRB, PREADY, PRDATA, PSLVERR;
+  	endclocking 
 //MODPORT
   //DUT
 	modport DUT (
@@ -29,13 +36,13 @@ interface apb_if #(
 	);
   //Driver
 	modport drv (
-		clocking cb_master,
-		input 	 PRESETn;
+		clocking cb_drv,
+		input 	 PRESETn
 	);
   //Monitor
   	modport mon(
-  		input PCLK, PRESETn, PSEL, PENABLE, PWRITE,  PADDR, PWDATA, 
-  			  PSTRB, PREADY, PRDATA, PSLVERR
+  		clocking cb_mon,
+  		input PRESETn
   	); 
   	
  endinterface : apb_if
