@@ -2,16 +2,16 @@
 `define APB_DRIVER_SV
 class apb_driver extends uvm_driver #(apb_seq_item);
 	`uvm_component_utils(apb_driver)
-	virtual apb_vif vif;
+	virtual apb_if vif;
 //Constructor
 	function new(string name="apb_driver", uvm_component parent = null);
-		super.build(name, parent);
+		super.new(name, parent);
 	endfunction : new
 //Build
 	virtual function void build_phase(uvm_phase phase);
 		super.build_phase(phase);
-		if (!uvm_config_db#(virtual vif)::get::(this, , "vif", vif) begin
-			`uvm_fatal(get_type_id(), "[ERROR - DRIVER] | Can't detect virtual interface in Driver ")
+		if (!uvm_config_db#(virtual vif)::get(this, "", "vif", vif)) begin
+			`uvm_fatal(get_type_name(), "[ERROR - DRIVER] | Can't detect virtual interface in Driver ")
 		end
 	endfunction : build_phase
 //Run
@@ -22,14 +22,14 @@ class apb_driver extends uvm_driver #(apb_seq_item);
 		vif.PWRITE  <= 1'b0;
 		vif.PWDATA	<= '0;
 		vif.PADDR	<= '0;
-		vif.STRB	<= '0;
+		vif.PSTRB	<= '0;
 
 		wait(vif.PRESETn == 1'b1);
-		`uvm_info(get_type_id(), " >>>[DRIVER READY] - APB4 Driver ready<<<", UVM_LOW)
+		`uvm_info(get_type_name(), " >>>[DRIVER READY] - APB4 Driver ready<<<", UVM_LOW)
 			forever begin
 				seq_item_port.get_next_item(req);
 				drive_transfer(req);
-				seq_item_port.finish_item(req);
+				seq_item_port.item_done();
 			end
 	endtask : run_phase
 //Transfer data
