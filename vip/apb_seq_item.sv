@@ -1,12 +1,10 @@
 `ifndef APB_SEQ_ITEM
 `define APB_SEQ_ITEM
-class apb_seq_item extends uvm_seq_item;
-	`uvm_object_utils(apb_seq_item)
+class apb_seq_item extends uvm_sequence_item;
 //Config
 	rand bit [31:0]		data;
 	rand bit [31:0]		addr;
-	rand bit 			write_en;
-	apb_write_e			pwrite;
+	rand apb_write_e	pwrite;
 	rand bit [3:0]		strb;
 //Constraint
 	constraint addr_align {
@@ -15,11 +13,10 @@ class apb_seq_item extends uvm_seq_item;
 	}
 //Factory
 	`uvm_object_utils_begin(apb_seq_item)
-		`uvm_field_init 	(addr, UVM_ALL_ON | UVM_HEX)
-		`uvm_field_init 	(data, UVM_ALL_ON | UVM_HEX)
-		`uvm_field_init 	(write_en, UVM_ALL_ON | UVM_BIN)
+		`uvm_field_int 		(addr, UVM_ALL_ON | UVM_HEX)
+		`uvm_field_int 		(data, UVM_ALL_ON | UVM_HEX)
 		`uvm_field_enum 	(apb_write_e ,pwrite, UVM_ALL_ON)
-		`uvm_field_init 	(strb, UVM_ALL_ON | UVM_BIN)
+		`uvm_field_int 		(strb, UVM_ALL_ON | UVM_BIN)
 	`uvm_object_utils_end
 //Construction
 	function new(string name="apb_seq_item");
@@ -27,4 +24,4 @@ class apb_seq_item extends uvm_seq_item;
 	endfunction : new
 	
 endclass : apb_seq_item
-`endif`
+`endif
