@@ -13,15 +13,15 @@ class apb_monitor extends uvm_monitor;
 	virtual function void build_phase(uvm_phase phase);
 		super.build_phase(phase);
 		item_collected_port = new("item_collected_port", this);
-		if(!uvm_config_db #(virtual vif)::get(this, ,"vif", vif)) begin
-			`uvm_fatal(get_type_id(), " >>>[ERROR MONITOR] | Can't detect virtual interface")
+		if(!uvm_config_db #(virtual apb_if)::get(this, ,"vif", vif)) begin
+			`uvm_fatal(get_type_name(), " >>>[ERROR MONITOR] | Can't detect virtual interface")
 	endfunction : build_phase	
 //Run
 	virtual task run_phase(uvm_phase phase);
 		apb_seq_item item;
 		wait (vif.PRESETn == 1'b1);
 		@(vif.cb);
-			`uvm_info(get_type_id(), " >>>[MONITOR] - Ready to Run")
+			`uvm_info(get_type_name(), " >>>[MONITOR] - Ready to Run", UVM_LOW)
 		//----------------------------------------
 		forever begin
 			@(vif.cb);
@@ -36,7 +36,7 @@ class apb_monitor extends uvm_monitor;
 				//-------------------------------------------------------------
 				`uvm_info(get_type_name(),
 										$sformatf("[MONITOR COLLECTED #%02d] CMD=%s | Addr=0x%08h | Data=0x%08h | PSTRB=0x%01h | PSLVERR=%0b",
-												                      num_collected, (item.pwrite == APB_WRITE) ? "WRITE" : "READ ",
+												                      item_collected, (item.pwrite == APB_WRITE) ? "WRITE" : "READ ",
 												                                    item.addr, item.data, item.pstrb, item.pslverr), UVM_LOW)
 				//Broadcast
 				item_collected_port.write(item);    
