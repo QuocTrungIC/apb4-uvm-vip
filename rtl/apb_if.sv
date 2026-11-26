@@ -16,7 +16,7 @@ interface apb_if #(
 	logic [STRB_WIDTH-1:0] 	PSTRB;
 	logic					PSLVERR;
 //Clocking Block for testbench
-	clocking cb_master @(posedge PCLK);
+	clocking cb @(posedge PCLK);
 		default input #1ns output #1ns;
 		output PSEL, PENABLE, PWRITE, PADDR, PWDATA, PSTRB;
 		input  PREADY, PRDATA, PSLVERR;

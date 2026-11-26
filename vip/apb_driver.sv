@@ -10,7 +10,7 @@ class apb_driver extends uvm_driver #(apb_seq_item);
 //Build
 	virtual function void build_phase(uvm_phase phase);
 		super.build_phase(phase);
-		if (!uvm_config_db#(virtual vif)::get(this, "", "vif", vif)) begin
+		if (!uvm_config_db#(virtual apb_if)::get(this, "", "vif", vif)) begin
 			`uvm_fatal(get_type_name(), "[ERROR - DRIVER] | Can't detect virtual interface in Driver ")
 		end
 	endfunction : build_phase
@@ -35,28 +35,28 @@ class apb_driver extends uvm_driver #(apb_seq_item);
 //Transfer data
 	virtual task drive_transfer(apb_seq_item item);
 	  //Setup
+	  	@(vif.cb);
 	  	vif.PSEL	<= 1'b1;		
 	  	vif.PENABLE <= 1'b0;
 	  	vif.PWRITE  <= (item.pwrite == APB_WRITE) ? 1'b1 : 1'b0;
 	  	vif.PWDATA	<= (item.pwrite == APB_WRITE) ? item.data : '0;
 	  	vif.PADDR	<= item.addr;
-	  	vif.STRB	<= item.pstrb;	
+	  	vif.PSTRB	<= item.pstrb;	
 	  //Access
 	  	@(vif.cb);		
 	  	vif.PENABLE <= 1'b1;
-	  	while (!vif.PREADY) begin
+	  	do begin
 	  		@(vif.cb);
-	  	end
+	  	end while(!vif.PREADY);
 	  //Read
-	  	if (vif.PWRITE == APB_READ)		item.data <= vif.PRDATA;
+	  	if (item.pwrite == APB_READ)		item.data = vif.PRDATA;
 	  	`uvm_info(get_type_name(), 
 	  						$sformatf("[ACCESS DONE] CMD=%s | Addr=0x%08h | Data=0x%08h | PSLVERR=%0b",
 	  						                            (item.pwrite == APB_WRITE) ? "WRITE" : "READ ",
 	  						                            item.addr, item.data, item.pslverr), UVM_LOW)
 	  //End
-	  	@(vif.cb);
-	  		vif.PSEL 	<= 1'b0;
-	  		vif.PENABLE <= 1'b0;
+	  	vif.PSEL 	<= 1'b0;
+	  	vif.PENABLE <= 1'b0;
 	endtask : drive_transfer
 endclass : apb_driver
 `endif
