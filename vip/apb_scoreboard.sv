@@ -5,7 +5,7 @@ class apb_scoreboard extends uvm_scoreboard;
 
 	uvm_tlm_analysis_fifo #(apb_seq_item) fifo;
 //Config
-	bit [31:0] mem [0:255];
+	bit [31:0] mem [int];
 	int write_trans	= 0;
 	int read_trans 	= 0;
 	int match		= 0;
@@ -37,7 +37,7 @@ class apb_scoreboard extends uvm_scoreboard;
 		`uvm_info(get_type_name(), $sformatf("Mismatch Transactions	:	%0d", mismatch	 ), UVM_LOW)
 		`uvm_info(get_type_name(), $sformatf("Write Transactions	:	%0d", write_trans), UVM_LOW)
 		`uvm_info(get_type_name(), $sformatf("Read Transactions		:	%0d", read_trans ), UVM_LOW)
-		if (mismatch== 0  && match==500 && total_trans== 500)
+		if (mismatch == 0  && match == read_trans && total_trans == 500)
 			`uvm_info(get_type_name(), " ======>[PASSED] ", UVM_LOW)
 		else 
 			`uvm_error(get_type_name(), " ======>[FAILED]")		
@@ -47,21 +47,19 @@ class apb_scoreboard extends uvm_scoreboard;
 		total_trans++;
 	    //Write
 	  	if (item.pwrite == APB_WRITE) begin
-	  		if(!mem.exist(item.addr)) 
+	  		if(!mem.exists(item.addr)) 
 	  			mem[item.addr] = 32'd0;
 	  		write_trans++;
 	  	  //Strobe
 	  	  	for (int i = 0; i < 4; i++) begin
 	  	  		if (item.pstrb[i] == 1)
-	  	  			mem[item.addr][i*8 +: 8] = item.addr[i*8 +: 8];
-	  	  		else 
-	  	  			mem[item.addr] = item.data;
+	  	  			mem[item.addr][i*8 +: 8] = item.data[i*8 +: 8];	
 	  	  	end
 	  	end		  		
 	  //Read
 	  	if (item.pwrite == APB_READ) begin
 	  		read_trans++;
-	  		if(!mem.exist(item.addr)) 
+	  		if(!mem.exists(item.addr)) 
 	  			mem[item.addr] = 32'd0;
 	  		if (item.data == mem[item.addr]) 	
 	  			match++;
